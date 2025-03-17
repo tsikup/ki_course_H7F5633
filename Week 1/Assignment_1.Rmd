@@ -1,0 +1,491 @@
+# Imports
+```{r}
+library(dplyr)
+library(remotes)
+library(airway)
+library(tidybiology)
+```
+
+# Task 1
+## 2.a. What is the medically relevant insight from the article?
+The paper presents ChromBERT, a deep learning model designed to improve functional genomics analysis by leveraging representation learning of chromatin state annotation data sequences. To my understanding, the medically relevant insight is that such an approach enhances the identification of chromatin motifs, which is crucial for understanding gene regulation and diseases linked to epigenetic modifications, and potentially identifying therapeutic targets for complex diseases.
+
+## 2.b. Which genomics technology/technologies were used?
+
+The paper's main methodology depends on deep learning to learn representations from chromatin state annotation data sequences. The model is trained on a large dataset of chromatin accessibility data and uses a transformer-based architecture to capture the complex relationships in the data. The model is evaluated on various functional genomics tasks, including predicting complex vs non-complex genic regions, highly-/non-expressed genic regions, and gene expression levels on RNA-seq data.
+
+## 3.a List and explain at least three questions/hypotheses that extend the analysis presented in the paper.
+
+Please excuse my limited knowledge/expertise in biology/bioinformatics areas, in case any of the following comments are not entirely accurate for this specific use case.
+
+  - The finetuning was performed on cell-lines data, which can limit the clinical applicability of any model. An intuitive improvement would be to test the model on patient to assess its generalizability and robustness across different biological contexts. This could provide valuable insights in clinically relevant scenarios.
+
+  - ChromBERT's performance on downstream tasks may vary across different cell types or tissues and diseases due to certain variations. Investigating its generalizability can provide insights into its robustness and applicability to diverse biological contexts.
+  
+  - A valuable extension of this work would be to investigate whether a multimodal approach, combining ChromBERT with other data types, can improve downstream task performance. This could help in understanding medically relevant questions in a more comprehensive manner.
+
+I would have liked to propose another biology-specific extension but since my biological knowledge is limited I got ChatGPT's help on that.
+  - Can ChromBERT predict the impact of non-coding genetic variants on disease susceptibility? Since many disease-associated SNPs are in non-coding regions, a natural extension is to see if ChromBERT can infer how these variations influence chromatin accessibility and gene regulation.
+
+## 3.b Devise a computational analysis strategy for (some of) the listed questions under 3a.
+
+  - For testing the model on patient data, one could collect relevant data from patient samples and evaluate ChromBERT's performance on these datasets after appropriate fine-tuning. Similarly so, investigating its performance across different cell types, tissues, and diseases would involve collecting diverse datasets representing various biological contexts.
+  
+  - Multimodal approaches could involve integrating ChromBERT with other omics data types such as transcriptomics, proteomics, etc or even imaging data. The data would need to be preprocessed, and the model architecture modified to accommodate the additional data types. The performance of the multimodal model could then be evaluated on downstream tasks to assess its effectiveness compared to the unimodal approaches.
+
+-- ChatGPT's suggestions --
+  - To predict the impact of non-coding genetic variants on disease susceptibility, one could integrate ChromBERT with variant data and evaluate the model's performance in predicting the effects of these variants on chromatin accessibility and gene regulation. This could involve training the model on known variant-disease associations and testing it on new variants to predict their impact on disease susceptibility.
+
+
+# Task 4
+```{r}
+print(paste0("Square root of 10: ", sqrt(10)))
+print(paste0("Log base 2 of 32: ", log2(32)))
+print(paste0("Sum of 1:1000: ", sum(1:1000)))
+print(paste0("Sum of even numbers 2:1000: ", sum(seq(2, 1000, 2))))
+print(paste0("Number of pairwise comparisons for 100 genes: ", choose(100, 2))) # 100 * 99 / 2
+print(paste0("Number of ways to arrange 100 genes in triples: ", round(factorial(100) / factorial(100 - 3), 2))) # 100 * 99 * 98
+
+# Output:
+# [1] "Square root of 10: 3.16227766016838"
+# [1] "Log base 2 of 32: 5"
+# [1] "Sum of 1:1000: 500500"
+# [1] "Sum of even numbers 2:1000: 250500"
+# [1] "Number of pairwise comparisons for 100 genes: 4950"
+# [1] "Number of ways to arrange 100 genes in triples: 970200"
+```
+
+# Task 5
+## description of the CO2 dataset
+```{r}
+data(CO2)
+help(CO2)
+
+# Output:
+
+" Carbon Dioxide Uptake in Grass Plants
+
+Description
+The CO2 data frame has 84 rows and 5 columns of data from an experiment on the cold tolerance of the grass species Echinochloa crus-galli.
+
+Usage
+CO2
+
+Format
+An object of class c('nfnGroupedData', 'nfGroupedData', 'groupedData', 'data.frame') containing the following columns:
+
+Plant
+an ordered factor with levels Qn1 < Qn2 < Qn3 < ... < Mc1 giving a unique identifier for each plant.
+
+Type
+a factor with levels Quebec Mississippi giving the origin of the plant
+
+Treatment
+a factor with levels nonchilled chilled
+
+conc
+a numeric vector of ambient carbon dioxide concentrations (mL/L).
+
+uptake
+a numeric vector of carbon dioxide uptake rates (μmol / m^2 sec).
+"
+```
+
+## summary of the CO2 dataset per Type
+```{r}
+CO2 %>%
+  filter(Type %in% c("Quebec", "Mississippi")) %>% # filter rows with Type equal to Quebec or Mississippi
+  group_by(Type) %>% # present per Type results
+  summarise(median_uptake = median(uptake, na.rm = TRUE), mean_uptake = mean(uptake, na.rm = TRUE)) # calculate median and mean uptake, ignoring NA values
+
+# Output
+# A tibble: 2 x 3
+#   Type       median_uptake mean_uptake
+#   <fct>             <dbl>       <dbl>
+#   Queber            37.15       33.54286
+#   Mississippi       19.30       20.88333
+
+# Higher mean and median uptake values for Quebec compared to Mississippi
+# Much higher median uptake value compared to its mean for Quebec (we expect to see a left-skewed distribution)
+# Similar median and mean uptake values for Mississippi
+```
+
+## summary of the CO2 dataset averaged across Types (Quebec and Mississippi)
+```{r}
+CO2 %>%
+  filter(Type %in% c("Quebec", "Mississippi")) %>% # filter rows with Type equal to Quebec or Mississippi
+  summarise(median_uptake = median(uptake, na.rm = TRUE), mean_uptake = mean(uptake, na.rm = TRUE)) # calculate median and mean uptake, ignoring NA values
+
+# Output
+# Description:df [1 × 2]
+#   median_uptake mean_uptake
+#   <dbl>       <dbl>
+#   28.3        27.2131
+
+# Slightly higher but maybe not important (depends on the application) median uptake value compared to its mean
+```
+
+## Airway dataset example (Optional)
+```{r}
+```
+
+# Task 6
+## ratio mean/median of a vector
+```{r}
+ratio_mean_median <- function(x) {
+  # Assert x is a numeric vector
+  if (!is.numeric(x)) {
+    stop("Input must be a numeric vector")
+  }
+  
+  mean_x <- mean(x, na.rm = TRUE) # calculate mean while ignoring NA values
+  median_x <- median(x, na.rm = TRUE) # calculate median while ignoring NA values
+  
+  # Assert median is not zero to avoid division by zero
+  if (median_x == 0) {
+    warning("Median is zero, returning +/- Inf")
+    signedIng = ifelse(mean_x < 0, -Inf, Inf)
+    return(signedIng)
+  }
+  
+  return(mean_x / median_x) # return the mean/median ratio
+}
+```
+
+## ignore the lowest and the highest value from a given vector and calculate the mean
+```{r}
+trimmed_mean <- function(x) {
+  # Assert x is a numeric vector
+  if (!is.numeric(x)) {
+    stop("Input must be a numeric vector")
+  }
+  
+  # Assert x has at least three elements
+  if (length(x) < 3) {
+    stop("Vector must have at least three elements to remove min and max")
+  }
+  
+  x_trimmed <- x[x != min(x, na.rm = TRUE) & x != max(x, na.rm = TRUE)] # remove min and max values
+  
+  return(mean(x_trimmed, na.rm = TRUE)) # calculate mean
+}
+```
+
+## What is piping, why, how and when (not) to use it (max 300 chars)
+```{r}
+# Piping is a way to chain operations/processes in a more readable and maintainable way
+# It is used to avoid nested function calls and to make the code more readable
+# and when we have a sequence of operations that need to be performed on the same object
+# but not when the operations are not related to each other or when you have multiple inputs/outputs
+# not optimal for long or complex sequences (makes debugging harder). Pipes should remain linear.
+```
+
+## apply, lapply, sapply, etc. # Write a short explanation (max. 300 characters, no spaces) of why they could be useful in your work.
+```{r}
+# Apply, lapply, sapply and the rest vectorized functions are useful when we want to apply a specific function to multiple vectors, rows of dataframe, matrix, etc. Instead of creating a loop we use a vectorized function, which keeps the code tidy and makes it faster, as vectorized operations are in principle faster than loops.
+
+# I've used such operations many times in my research work to apply certain functions to a selected subset of my dataframes, lists or vectors, that I use for something else later on. For example, I could use it to separate a filename to extract the patientID, or apply a numerica operation to extract mean values, etc.
+```
+
+
+# Task 7
+## 7.1
+```{r}
+magic_guys <- read.csv("magic_guys.csv")
+head(magic_guys)
+```
+
+```{r}
+# Histogram using 20 breaks
+ggplot(magic_guys, aes(length)) +
+  geom_histogram(bins=20)
+  
+# Horizontal histogram using 40 breaks for each species
+ggplot(magic_guys, aes(y=length, fill=species)) +
+  geom_histogram(bins=40)
+
+# Histogram using 60 breaks and black borderline
+# Assign the output to object `p`
+p <- ggplot(magic_guys, aes(length, fill=species)) + 
+  geom_histogram(bins=60, colour='black')
+p  # display object `p`
+
+ggsave("output/7_1_c_histograms.png", p) # save object `p` to png file
+```
+
+```{r}
+# Histogram using 20 breaks
+ggplot(magic_guys, aes(y=length)) +
+  geom_boxplot()
+  
+# Horizontal Botplot using 40 breaks for each species
+ggplot(magic_guys, aes(x=length, fill=species)) +
+  geom_boxplot()
+
+# Boxplot using 60 breaks and black borderline
+# Assign the output to object `p`
+p <- ggplot(magic_guys, aes(y=length, fill=species)) + 
+  geom_boxplot()
+p # display object `p`
+
+ggsave("output/7_1_c_boxplots.png", p) # save object `p` to png file
+
+# png is used for raster graphics, while pdf/svg is used for vector graphics. If one needs to scale the plot, pdf or svg (even better) should be preferred. Publications usually require pdf format. If one needs to include the plot in a webpage, documents or presentations png is preferred. All are lossless formats, so the quality is not affected by compression.
+```
+## 7.2
+```{r}
+microarray_data <- read.delim("microarray_data.tab")
+head(microarray_data)
+```
+
+```{r}
+dim(microarray_data)
+
+# The matrix has 553 rows (samples) and 1000 columns (genes)
+```
+
+```{r}
+# Count the missing values per gene and visualize this result
+
+microarray_data %>%
+  summarise_all(~sum(is.na(.))) %>% # count missing values per gene using is.na, sum, anonymous function (~) and summarise_all (summarise multiple columns)
+  gather(key = "gene", value = "missing_values") %>% # reshape the data from wide to long format using gather
+  ggplot(aes(x=gene, y=missing_values)) + # plot the data
+  geom_bar(stat="identity") + # use bar plot
+  theme(axis.text.x = element_blank()) + # remove X labels to avoid clutter since they are too many (1000) to display
+  xlab("Genes") +
+  ylab("Missing values")
+
+ggsave("output/7_2_missing_values.png") # save the plot to a file
+
+# With this plot (per-gene histogram of samples with missing values) we may not be able to see specific genes and their missing values numbers but we get an informative overview across all one thousand genes.
+```
+
+```{r}
+# Find the genes for which there are more than X% (X=10%, 20%, 50%) missing values.
+
+missing_gene_percentage <- function(gene) {
+  return(
+    sum(is.na(gene)) # number of missing values per gene
+    / 
+      length(gene) # total number of samples
+    * 100) # percentage of missing values
+}
+
+missing_data <- microarray_data %>%
+  summarise_all(missing_gene_percentage) %>% # calculate percentage of missing values per gene
+  gather(key = "gene", value = "missing_values_percentages") %>% # reshape the data from wide to long format
+  mutate(missing_10 = missing_values_percentages > 10, # prct is greater than 10%
+         missing_20 = missing_values_percentages > 20, # prct is greater than 20%
+         missing_50 = missing_values_percentages > 50) # prct is greater than 50%
+
+missing_data %>%
+  filter(missing_10) %>% # filter genes with more than 10% missing values
+  select(gene) %>% # select gene column
+  write.csv("output/7_2_missing_10.csv") # save the result to a file
+
+missing_data %>%
+  filter(missing_20) %>% # filter genes with more than 20% missing values
+  select(gene) %>%
+  write.csv("output/7_2_missing_20.csv")
+
+missing_data %>%
+  filter(missing_50) %>% # filter genes with more than 50% missing values
+  select(gene) %>%
+  write.csv("output/7_2_missing_50.csv")
+
+# The output files contain the names of the genes with more than 10%, 20%, and 50% missing values, respectively.
+```
+
+```{r}
+# Replace the missing values by the average expression value for the particular gene. (Note: Imputing data has to be used with caution!)
+
+imputed_microarray_data <- microarray_data %>%
+  mutate_all(~ifelse(is.na(.), mean(., na.rm = TRUE), .)) # replace missing values with the mean value of the gene
+
+write.csv(imputed_microarray_data, "output/7_2_imputed_microarray_data.csv") # save the imputed data to a file
+
+# The output of this operation is a new dataset with missing values replaced by the average expression value for each gene.
+```
+
+
+## 7.3
+```{r}
+# Visualize the data in the CO2 dataset in a way that gives you a deeper understanding of the data. What do you see?
+
+
+# Boxplot of uptake per Type -> Quebec has higher uptake values compared to Mississippi
+ggplot(CO2, aes(x=Type, y=uptake, fill=Type)) +
+  geom_boxplot() +
+  labs(title="CO2 Uptake by Type",
+       y="CO2 Uptake")
+
+# Box plot of uptake per Treatment -> chilled treatment has lower uptake values compared to nonchilled but they overlap so the difference doesn't stand out as much as in the Type plot
+ggplot(CO2, aes(x=Treatment, y=uptake, fill=Treatment)) +
+  geom_boxplot() +
+  labs(title="CO2 Uptake by Treatment",
+       y="CO2 Uptake")
+
+# Scatter plot of uptake vs. conc colored by Type -> This plot shows how CO2 uptake changes with increasing CO2 concentration for the different plant types.
+# there is a certain logarithmic function that separates the two types with respect to uptake and concentration values
+ggplot(CO2, aes(x=conc, y=uptake, color=Type)) +
+  geom_point() +
+  geom_smooth(method="loess") +
+  labs(title="CO2 Uptake vs. CO2 Concentration",
+       x="CO2 Concentration", y="CO2 Uptake")
+
+# Boxplot of uptake per Type and Treatment -> The previous conclusions are confirmed and we can see how the uptake values are distributed for each combination of Type and Treatment. However, chilled treatment has remarkably lower uptake values compared to nonchilled for Mississippi than Quebec.
+ggplot(CO2, aes(x=Type, y=uptake, fill=Treatment)) +
+  geom_boxplot() +
+  labs(title="CO2 Uptake by Type and Treatment",
+       y="CO2 Uptake")
+```
+
+
+# Task 8
+```{r}
+data(chromosome)
+data(proteins)
+```
+## a
+```{r}
+#Extract summary statistics (mean, median and maximum) for the following variables from the ‘chromosome’ data: variations, protein coding genes, and miRNAs. Utilize the tidyverse functions to make this as simply as possible.
+
+chrom_stats <- chromosome %>%
+  summarise(
+    # Variations stats
+    mean_variations = mean(variations, na.rm = TRUE),
+    median_variations = median(variations, na.rm = TRUE),
+    max_variations = max(variations, na.rm = TRUE),
+    
+    # Protein coding genes stats
+    mean_protein_genes = mean(protein_codinggenes, na.rm = TRUE),
+    median_protein_genes = median(protein_codinggenes, na.rm = TRUE),
+    max_protein_genes = max(protein_codinggenes, na.rm = TRUE),
+    
+    # MiRNA stats
+    mean_miRNAs = mean(mi_rna, na.rm = TRUE),
+    median_miRNAs = median(mi_rna, na.rm = TRUE),
+    max_miRNAs = max(mi_rna, na.rm = TRUE)
+  )
+
+t(chrom_stats) # transpose the data frame to display it in a more readable format
+
+# Output:
+# mean_variations      6.484572e+06
+# median_variations    6.172346e+06
+# max_variations       1.294596e+07
+# mean_protein_genes   8.499583e+02
+# median_protein_genes 8.360000e+02
+# max_protein_genes    2.058000e+03
+# mean_miRNAs          7.316667e+01
+# median_miRNAs        7.500000e+01
+# max_miRNAs           1.340000e+02
+```
+
+## b
+```{r}
+# How does the chromosome size distribute? Plot a graph that helps to visualize this by using ggplot2 package functions.
+
+# ggplot histogramplot of the chromosome sizes -> non specific distribution
+ggplot(chromosome) + 
+  geom_histogram(aes(x=length_mm), bins=20, fill="lightblue", color="black") +
+  labs(title="Chromosome Size Distribution",
+       x="Chromosome Size",
+       y="Frequency")
+
+```
+
+## c
+```{r}
+# Does the number of protein coding genes or miRNAs correlate with the length of the chromosome? Make two separate plots to visualize these relationships.
+
+# Scatter plot + fitted linear model of protein coding genes vs. chromosome length -> positive correlation with some outliers
+ggplot(chromosome, aes(x=length_mm, y=protein_codinggenes)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  labs(title="Protein Coding Genes vs. Chromosome Length",
+       x="Chromosome Length",
+       y="Protein Coding Genes")
+
+# Scatter plot + fitted linear model of miRNA vs. chromosome length -> positive correlation with some outliers
+ggplot(chromosome, aes(x=length_mm, y=mi_rna)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  labs(title="miRNA vs. Chromosome Length",
+       x="Chromosome Length",
+       y="miRNA")
+
+```
+
+## d
+```{r}
+# Calculate the same summary statistics for the ‘proteins’ data variables length and mass. Create a meaningful visualization of the relationship between these two variables by utilizing the ggplot2 package functions. Play with the colors, theme- and other visualization parameters to create a plot that pleases you.
+
+protein_stats <- proteins %>%
+  summarise(
+    mean_length = mean(length, na.rm = TRUE),
+    median_length = median(length, na.rm = TRUE),
+    max_length = max(length, na.rm = TRUE),
+    
+    mean_mass = mean(mass, na.rm = TRUE),
+    median_mass = median(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  )
+
+t(protein_stats)
+
+# Output
+# mean_length       557.1603
+# median_length     414.0000
+# max_length      34350.0000
+# mean_mass       62061.3791
+# median_mass     46140.5000
+# max_mass      3816030.0000
+
+
+
+# Histogram of protein lengths and masses -> extreme outliers present + right-skewed distribution, plot on log scale for better visualization
+ggplot(proteins) + 
+  geom_histogram(aes(x=log(length)), bins=20, fill="lightblue", color="black") +
+  # geom_histogram(aes(x=log(length)), bins=20, fill="lightblue", color="black") +
+  theme_minimal() +
+  labs(title="Protein Length Distribution",
+       x="Protein Length (log scale)",
+       y="Frequency")
+
+ggplot(proteins) + 
+  geom_histogram(aes(x=log(mass)), bins=20, fill="lightblue", color="black") +
+  theme_minimal() +
+  labs(title="Protein Mass Distribution",
+       x="Protein Mass (log scale)",
+       y="Frequency")
+
+# Scatter plot of protein log(length) vs. log(mass) -> positive linear correlation with a cor coefficient of 0.999 and a p-value < 2.2e-16
+cor_coef <- round(cor(log(proteins$length), log(proteins$mass), method = "pearson"), 3) # calculate pearson correlation coefficient of log(length) and log(mass) rounded to 3 decimal places
+p_value <- cor.test(log(proteins$length), log(proteins$mass), method="pearson")$p.value # calculate p-value of the correlation test
+
+ggplot(proteins, aes(x=log(length), y=log(mass))) +
+  geom_point(color = "lightblue", alpha = 0.6) +
+  geom_smooth(method = "lm", color = "black") +
+  # print text for correlation value
+  annotate("text", x = 3, y = 12, label = paste("Correlation: ", cor_coef)) +
+  annotate("text", x = 3, y = 11.5, label = paste("P-value: ", p_value)) +
+  theme_minimal() +
+  labs(title="Protein Length vs. Mass",
+       x="Protein Length",
+       y="Protein Mass")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
