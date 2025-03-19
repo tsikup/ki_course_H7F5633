@@ -8,7 +8,7 @@ The assignment is well structured with a clear separation of the tasks. Addition
 
 The formatting is appropriate with the use of markdown headers and code blocks.
 
-** 2.1 Are all the tasks addressed?**
+**2.1 Are all the tasks addressed?**
 
 All required tasks are addressed.
 
